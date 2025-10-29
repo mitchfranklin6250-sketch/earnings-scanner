@@ -1,0 +1,37 @@
+name: Earnings Beat Scanner
+
+on:
+  schedule:
+    # Run twice daily: 8 AM and 4 PM ET (after market close)
+    # 8 AM ET = 1 PM UTC (summer) / 12 PM UTC (winter)
+    # 4 PM ET = 9 PM UTC (summer) / 8 PM UTC (winter)
+    # These times run regardless of DST
+    - cron: '0 13 * * *'  # 8 AM ET (approx)
+    - cron: '0 21 * * *'  # 4 PM ET (approx)
+    
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run Earnings Beat Scanner
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        python earnings_scanner.py
